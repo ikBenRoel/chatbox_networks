@@ -15,14 +15,21 @@ socket.addEventListener('open', () => {
 
 socket.addEventListener('message', (event) => {
   const div = document.createElement('div');
-  div.textContent = event.data;
+  const data = JSON.parse(event.data);
+  if (data.type === 'info') {
+    div.textContent = `*** ${data.message} ***`;
+    div.classList.add('info-message');
+  } else if (data.type === 'Message'){
+    div.textContent = `[${data.userName}]: ${data.message}`;
+    if (data.userName === localStorage.getItem('username')) div.classList.add('my-message');
+  }
   chatSpan.appendChild(div);
 });
 
 btn.addEventListener('click', () => {
   const msg = input.value;
   if (!msg) return;
-  data = {
+  const data = {
     type: 'Message',
     message: msg,
     userName: localStorage.getItem('userName'),
