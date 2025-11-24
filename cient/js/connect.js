@@ -4,6 +4,15 @@ const chatSpan = document.querySelector('#chat');
 const input = document.querySelector('#msg');
 const btn = document.querySelector('#sendBtn');
 
+const joinRoomData = {
+  type: 'joinRoom',
+  userName: localStorage.getItem('userName'),
+  room: localStorage.getItem('room')
+}
+socket.addEventListener('open', () => {
+  socket.send(JSON.stringify(joinRoomData));
+});
+
 socket.addEventListener('message', (event) => {
   const div = document.createElement('div');
   div.textContent = event.data;
@@ -13,6 +22,12 @@ socket.addEventListener('message', (event) => {
 btn.addEventListener('click', () => {
   const msg = input.value;
   if (!msg) return;
+  data = {
+    type: 'Message',
+    message: msg,
+    userName: localStorage.getItem('userName'),
+    room: localStorage.getItem('room')
+  }
   socket.send(msg);
   input.value = '';
 });

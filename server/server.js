@@ -1,10 +1,11 @@
 const http = require("http");
 const crypto = require("crypto");
-const { decodeMessage, sendMessage, removeClient } = require("./util.js");
+const {decodeMessage, sendMessage, addUser, removeSocket, broadcast} = require("./util.js");
 
 const server = http.createServer();
 
-const clients = [];
+const rooms = {};
+const socketMap = new Map();
 
 server.on("upgrade", (req, socket) => {
   if (req.headers["upgrade"] !== "websocket") {
@@ -27,29 +28,33 @@ server.on("upgrade", (req, socket) => {
   ];
 
   socket.write(headers.join("\r\n") + "\r\n\r\n"); // insures a good formatting of the response
-  clients.push(socket);
 
 
   socket.on("data", (buffer) => {
     try {
-      const firstByte = buffer[0];
-      const opcode = firstByte & 0x0f;
-      const message = decodeMessage(buffer);
-      if (!message || opcode === 0x8) return; //when a client disconnects first bite is = 0x8 we do not want to broadcast that
-      console.log("Client says:", message);
+      const opcode = buffer[0] & 0x0f;
+      if (opcode === 0x8) return; // client disconnects, ignore
 
-      for (const client of clients) {
-        sendMessage(client, message);
+      const data = JSON.parse(decodeMessage(buffer));
+
+      if (data.type === "Message") {
+        broadcast(rooms, data.room, data.message);
+      } else if (data.type === "joinRoom") {
+        const joinMsg = `${data.userName} has joined the room`;
+        addUser(data.room, data.userName, socket, rooms, socketMap);
+        broadcast(rooms, data.room, joinMsg, "info");
       }
+
     } catch (err) {
       console.error("Failed to decode message:", err);
     }
   });
 
 
-  socket.on('end', () => removeClient(socket, clients));
-  socket.on('close', () => removeClient(socket, clients));
-  socket.on('error', () => {removeClient(socket, clients);});
+
+  socket.on("end", () => removeSocket(socket, rooms, socketMap));
+  socket.on("close", () => removeSocket(socket, rooms, socketMap));
+  socket.on("error", () => removeSocket(socket, rooms, socketMap));
 
 
 });
