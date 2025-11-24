@@ -13,3 +13,17 @@ C
 server/util.js,c\8\c8500237faa3eefa11038094f7394ececc8c15d9
 9
 	README.md,8\e\8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
+C
+cient/chatRoom.html,c\8\c8f34e918aba830f4d364b66461cb7142822329e
+D
+cient/js/JoinRoom.js,b\6\b6d55ce881f684397a593c2367a45cebf8ca0aad
+C
+cient/js/connect.js,1\c\1cc1917eba41b98e16de6e1b10e45282e4815d83
+S
+#.idea/sonarlint/issuestore/index.pb,9\f\9fe84ebb15faf917b7def6236dba604453cc61e0
+C
+cient/css/style.css,e\9\e9ef7cbe44f0ae19b193aac097cfdced0328126e
+]
+-.idea/sonarlint/securityhotspotstore/index.pb,8\8\88a9255124c95bdc913197c120a8d560edc59c8e
+D
+cient/js/joinRoom.js,5\9\59b289876b1078995d1d0438aec1d39a5d4d044d

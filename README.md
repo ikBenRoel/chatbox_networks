@@ -4,9 +4,10 @@ the client makes a request to the server with the a header 'connection: upgrade'
 const socket = new WebSocket('ws://127.0.0.1:3000');
 ```
 
-The server responds with a status code 101 (Switching Protocols) and includes the 'upgrade' header in its response to confirm the protocol switch.
-it also provides a 'sec-websocket-accept' header, which is a base64-encoded value derived from the client's 'sec-websocket-key' header.
-
+The server responds with a status code 101 (Switching Protocols) and includes the 'upgrade' header in its response to
+confirm the protocol switch.
+it also provides a 'sec-websocket-accept' header, which is a base64-encoded value derived from the client's '
+sec-websocket-key' header.
 
 ```javascript
 server.on("upgrade", (req, socket) => {
@@ -28,33 +29,37 @@ server.on("upgrade", (req, socket) => {
     `Sec-WebSocket-Accept: ${acceptKey}`
   ];
 
-  socket.write(headers.join("\r\n") + "\r\n\r\n"); // insures a good formatting of the response
+  socket.write(headers.join("\r\n") + "\r\n\r\n"); // ensures a good formatting of the response
 });
 ```
-when a client sent a message, the server reads the incoming data frame, decodes it according to the WebSocket framing protocol, and processes the payload.
+
+when a client sent a message, the server reads the incoming data frame, decodes it according to the WebSocket framing
+protocol, and processes the payload.
 
 ```javascript
 socket.on("data", (buffer) => {
-    try {
-      const firstByte = buffer[0];
-      const opcode = firstByte & 0x0f;
-      const message = decodeMessage(buffer);
-      if (!message || opcode === 0x8) return; //when a client disconnects first bite is = 0x8 we do not want to broadcast that
-      console.log("Client says:", message);
+  try {
+    const firstByte = buffer[0];
+    const opcode = firstByte & 0x0f;
+    const message = decodeMessage(buffer);
+    if (!message || opcode === 0x8) return; //when a client disconnects first byte is = 0x8 we do not want to broadcast that
+    console.log("Client says:", message);
 
-      for (const client of clients) {
-        sendMessage(client, message);
-      }
-    } catch (err) {
-      console.error("Failed to decode message:", err);
+    for (const client of clients) {
+      sendMessage(client, message);
     }
-    });
+  } catch (err) {
+    console.error("Failed to decode message:", err);
+  }
+});
 ```
 
-# why has must the server decode the message according to the WebSocket framing protocol?
-an incoming message does not only have the massge so if you use the raw data you will get somthing unreadable.
+# why must the server decode the message according to the WebSocket framing protocol?
+
+an incoming message does not only have the message so if you use the raw data you will get somthing unreadable.
 
 the frame will look like this:
+
 ```
 | Field                       | Size         | Description |
 |-------------------------------|------------|-------------|
@@ -69,10 +74,12 @@ the frame will look like this:
 ```
 
 this is why we need to decode the message.
-first we have to know if it is even a massage a user wants to send or if its a control frame like a ping or a close frame.
+first we have to know if it is even a massage a user wants to send or if its a control frame like a ping or a close
+frame.
 thats why we check the opcode. if its 0x8 we just return.
 
-the acctal decoding looks like this:
+the actual decoding looks like this:
+
 ```javascript
 function decodeMessage(buffer) {
   const secondByte = buffer[1];
@@ -100,24 +107,30 @@ function decodeMessage(buffer) {
   return unmasked.toString();
 }
 ```
+
 first we get the second byte of the buffer to extract the payload length.
 
 1. **`secondByte`**: This is the second byte of the WebSocket frame, which contains:
     - The most significant bit (MSB) indicating whether the payload is masked (1 bit).
     - The remaining 7 bits representing the payload length or an indicator for extended length.
 
-2. **`& 127`**: The bitwise AND operation (`&`) is used to mask out the MSB (the masking bit) and retain only the lower 7 bits. The value `127` in binary is `01111111`, which ensures that only the last 7 bits of `secondByte` are preserved.
+2. **`& 127`**: The bitwise AND operation (`&`) is used to mask out the MSB (the masking bit) and retain only the lower
+   7 bits. The value `127` in binary is `01111111`, which ensures that only the last 7 bits of `secondByte` are
+   preserved.
 
 3. **Result**: The extracted value (`length`) represents:
     - The actual payload length if it is less than 126.
     - An indicator for extended payload length (126 or 127) if the payload is larger.
 
-then we determine where the masking key starts based on the length of the payload. so we can extract the mask and the actual message.
+then we determine where the masking key starts based on the length of the payload. so we can extract the mask and the
+actual message.
 then we create a new buffer to store the unmasked message.
 
-finally we loop through each byte of the message and apply the XOR operation between the message byte and the corresponding mask byte (cycling through the mask using `i % 4`), effectively unmasking the payload.
+finally we loop through each byte of the message and apply the XOR operation between the message byte and the
+corresponding mask byte (cycling through the mask using `i % 4`), effectively unmasking the payload.
 
 the only thing left is to send the message to all connected clients.
+
 ```javascript
 function sendMessage(socket, msg) {
   const msgBuffer = Buffer.from(msg);
@@ -132,9 +145,10 @@ function sendMessage(socket, msg) {
 
 this function constructs a WebSocket frame to send a text message to a client.
 and we do this for each client in the clients set.
+
 ```javascript
       for (const client of clients) {
-        sendMessage(client, message);
-      }
+  sendMessage(client, message);
+}
 ```
 
