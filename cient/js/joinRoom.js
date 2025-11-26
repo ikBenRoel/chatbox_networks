@@ -27,7 +27,7 @@ function validateInputs(username, room) {
 }
 
 function storeUserData(username, room) {
-  localStorage.setItem("userName", username);
+  localStorage.setItem("username", username);
   localStorage.setItem("room", room);
 }
 

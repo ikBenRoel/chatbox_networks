@@ -1,6 +1,14 @@
 import http from "http";
 import crypto from "crypto";
-import { decodeMessage, addUser, removeSocket, broadcast, isRateLimited } from "./utils/mod.js";
+import {
+  decodeMessage,
+  addUser,
+  removeSocket,
+  broadcast,
+  isRateLimited,
+  whisper,
+  sendMessage
+} from "./utils/mod.js";
 
 const server = http.createServer();
 const rooms = {};
@@ -45,19 +53,20 @@ function handleSocketData(socket, buffer) {
     if (opcode === 0x8) return; // client disconnect
 
     if (isRateLimited(socket)) {
-      socket.write(encodeMessage({ type: "error", msg: "Rate limit exceeded" }));
+      sendMessage(rooms, socketMap.get(socket).roomName, socketMap.get(socket).username, "error", "Rate limit exceeded. Please slow down.", socketMap.get(socket).username);
       return;
     }
-
-
     const data = JSON.parse(decodeMessage(buffer));
-
+    console.log(data);
     switch (data.type) {
       case "Message":
-        broadcast(rooms, data.room, data.message);
+        broadcast(rooms, data.room, data.message, data.username);
         break;
       case "joinRoom":
         handleJoinRoom(socket, data);
+        break;
+      case "whisper":
+        whisper(rooms, socket, data);
         break;
       default:
         console.warn("Unknown message type:", data.type);
@@ -67,10 +76,10 @@ function handleSocketData(socket, buffer) {
   }
 }
 
-function handleJoinRoom(socket, { room, userName }) {
-  const joinMsg = `${userName} has joined the room`;
-  addUser(room, userName, socket, rooms, socketMap);
-  broadcast(rooms, room, joinMsg, "info");
+function handleJoinRoom(socket, { room, username }) {
+  const joinMsg = `${username} has joined the room`;
+  addUser(room, username, socket, rooms, socketMap);
+  broadcast(rooms, room, joinMsg, "info", "info");
 }
 
 function cleanupSocket(socket) {

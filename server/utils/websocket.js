@@ -28,7 +28,7 @@ function decodeMessage(buffer) {
   return unmasked.toString();
 }
 
-function sendMessage(socket, msg) {
+function sendFrame(socket, msg) {
   const msgBuffer = Buffer.from(msg);
   const frame = Buffer.alloc(2 + msgBuffer.length);
 
@@ -60,4 +60,4 @@ function isRateLimited(socket) {
   return false;
 }
 
-export { decodeMessage, sendMessage, isRateLimited};
+export { decodeMessage, sendFrame, isRateLimited};

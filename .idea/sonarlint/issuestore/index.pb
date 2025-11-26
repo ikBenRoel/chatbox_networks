@@ -27,3 +27,7 @@ E
 server/utils/rooms.js,c\2\c22c129a4075f5ec51fce1ce60385e3601dbea03
 C
 server/utils/mod.js,4\1\41f319a16312ef68eba83497e2b66a875b97281d
+A
+cient/js/utils.js,d\8\d8865b3010f3dc28503a6c4ccdead471cbaf8e94
+@
+cient/js/chat.js,c\1\c18fbc946ba4993cc5ff6cd86dcc8675d7882ddc
