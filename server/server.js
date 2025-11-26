@@ -1,6 +1,6 @@
 import http from "http";
 import crypto from "crypto";
-import { decodeMessage, addUser, removeSocket, broadcast } from "./utils/mod.js";
+import { decodeMessage, addUser, removeSocket, broadcast, isRateLimited } from "./utils/mod.js";
 
 const server = http.createServer();
 const rooms = {};
@@ -40,8 +40,15 @@ function setupSocket(socket) {
 
 function handleSocketData(socket, buffer) {
   try {
+
     const opcode = buffer[0] & 0x0f;
     if (opcode === 0x8) return; // client disconnect
+
+    if (isRateLimited(socket)) {
+      socket.write(encodeMessage({ type: "error", msg: "Rate limit exceeded" }));
+      return;
+    }
+
 
     const data = JSON.parse(decodeMessage(buffer));
 

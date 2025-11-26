@@ -1,3 +1,7 @@
+const rateLimit = new Map();
+const MAX_TOKENS = 5;
+const REFILL_RATE = 1000;
+
 function decodeMessage(buffer) {
   const secondByte = buffer[1];
 
@@ -35,4 +39,25 @@ function sendMessage(socket, msg) {
   socket.write(frame);
 }
 
-export { decodeMessage, sendMessage};
+function isRateLimited(socket) {
+  const now = Date.now();
+
+  if (!rateLimit.has(socket)) {
+    rateLimit.set(socket, { tokens: MAX_TOKENS, lastRefill: now });
+    return false;
+  }
+
+  const data = rateLimit.get(socket);
+
+  if (now - data.lastRefill >= REFILL_RATE) {
+    data.tokens = MAX_TOKENS;
+    data.lastRefill = now;
+  }
+
+  if (data.tokens <= 0) return true;
+
+  data.tokens--;
+  return false;
+}
+
+export { decodeMessage, sendMessage, isRateLimited};
