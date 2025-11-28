@@ -6,6 +6,10 @@ const chatSpan = document.querySelector('#chat');
 const input = document.querySelector('#msg');
 const btn = document.querySelector('#sendBtn');
 
+// pour "X is typing..."
+let typingTimeout;
+const typingIndicator = document.querySelector('#typingIndicator');
+
 function createWhisperMessage(msg) {
   const parts = msg.split(' ');
   if (parts.length < 3) {
@@ -40,22 +44,47 @@ function handleSocketOpen() {
 
 function handleSocketMessage(event) {
   const { type, username: sender, message, targetUser } = JSON.parse(event.data);
-  console.log(event.data);
+  console.log('RECV:', event.data);
+
   switch (type) {
     case 'info':
       appendMessage(`*** ${message} ***`, 'info-message');
       break;
-    case 'message':
-      appendMessage(`[${sender}]: ${message}`, sender === getUsername() ? 'my-message' : 'message');
-      break;
-    case 'whisper':
-      if (sender === getUsername()) appendMessage(`[Whisper to ${targetUser}]: ${message}`, 'my-message');
-      else appendMessage(`[Whisper from ${sender}]: ${message}`, 'whisper-message');
 
+    case 'message':
+      appendMessage(
+        `[${sender}]: ${message}`,
+        sender === getUsername() ? 'my-message' : 'message'
+      );
       break;
+
+    case 'whisper':
+      if (sender === getUsername()) {
+        appendMessage(`[Whisper to ${targetUser}]: ${message}`, 'my-message');
+      } else {
+        appendMessage(`[Whisper from ${sender}]: ${message}`, 'whisper-message');
+      }
+      break;
+
     case 'error':
       appendMessage(`Error: ${message}`, 'error-message');
       break;
+
+    case 'typing':
+      // On ignore si c'est nous
+      if (sender === getUsername()) return;
+
+      if (typingIndicator) {
+        typingIndicator.textContent = `${sender} is typing...`;
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+          typingIndicator.textContent = '';
+        }, 1500);
+      }
+      break;
+
+    default:
+      console.warn('Unknown type:', type);
   }
 }
 
@@ -72,9 +101,25 @@ function handleSendButtonClick() {
   }
 }
 
+// Envoi de l'info "je suis en train d'écrire"
+function sendTyping() {
+  if (socket.readyState !== WebSocket.OPEN) return;
+
+  socket.send(JSON.stringify({
+    type: 'typing',
+    username: getUsername(),
+    room: getRoom()
+  }));
+}
+
 socket.addEventListener('open', handleSocketOpen);
 socket.addEventListener('message', handleSocketMessage);
 btn.addEventListener('click', handleSendButtonClick);
+
 input.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') handleSendButtonClick();
+});
+
+input.addEventListener('input', () => {
+  sendTyping();
 });
