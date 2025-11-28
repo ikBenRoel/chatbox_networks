@@ -6,6 +6,9 @@ const chatSpan = document.querySelector('#chat');
 const input = document.querySelector('#msg');
 const btn = document.querySelector('#sendBtn');
 
+const roomName = getRoom(); 
+document.querySelector('#room-title').textContent = `Room: ${roomName}`;
+
 function createWhisperMessage(msg) {
   const parts = msg.split(' ');
   if (parts.length < 3) {
