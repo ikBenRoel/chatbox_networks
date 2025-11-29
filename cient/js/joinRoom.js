@@ -2,8 +2,6 @@ const joinButton = document.getElementById("join");
 const usernameInput = document.getElementById("username");
 const roomInput = document.getElementById("room");
 
-
-
 fetch("http://127.0.0.1:3000/rooms").then(
   (response) => response.json()
 ).then((data) => addRoomsToDataList(data));

@@ -10,7 +10,7 @@
 <div class="chat-container">
     <header class="chat-header">
         <h1>WebSocket Chat</h1>
-        <h2 id="room-title"></h2>
+        <h2 id="room-title">room</h2>
     </header>
 
    <main class="chat-main">
@@ -25,5 +25,14 @@
     </footer>
 </div>
 </body>
+<template id="message-template">
+    <div class="message">
+        <div class="message-line">
+            <span class="msg-avatar"></span>
+            <span class="msg-text"></span>
+        </div>
+        <span class="msg-time"></span>
+    </div>
+</template>
 </html>
 
